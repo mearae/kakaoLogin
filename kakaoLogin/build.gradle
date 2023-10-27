@@ -34,6 +34,8 @@ dependencies {
 	// ** nurigo message
 	// ** nurigo -> 좌측 메뉴 -> 아래쪽 SDK 다운로드 -> Java용 SDK -> Github Repo에서 버전 확인
 	implementation 'net.nurigo:sdk:4.3.0'
+
+	implementation 'org.apache.httpcomponents:httpclient:4.3.2'
 }
 
 ext {
