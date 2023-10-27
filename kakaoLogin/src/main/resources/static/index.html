@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Join Form</title>
+</head>
+<body>
+
+<h1>Join</h1>
+
+<form id="joinForm">
+    <div class="col">
+        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/oauth">카카오로 로그인하기</a>
+    </div>
+    <div class="col">
+        <a class="btn btn-lg btn-secondary" href="/login/kakao/logout">로그아웃</a>
+    </div>
+    <div class="col">
+        <img src="${thumbnailImage}"><p class="text-right" if="${username != null}" text="${username} + '님, 안녕하세요!'"></p>
+    </div>
+</form>
+
+
+</body>
+</html>
