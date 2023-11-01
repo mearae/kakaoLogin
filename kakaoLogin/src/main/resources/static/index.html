@@ -1,23 +1,39 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>Kakotalk Login Form</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+        }
+
+        h1 {
+            color: #fff;
+        }
+
+        .btn {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .btn:hover {
+            background-color: #666;
+        }
+    </style>
 </head>
 <body>
-
 <h1>Kakotalk Login</h1>
 
 <form id="joinForm">
     <div class="col">
         <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/oauth">카카오로 로그인하기</a>
     </div>
+
     <div class="col">
         <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/relogin">카카오로 다시 로그인하기</a>
     </div>
 </form>
-
-
 </body>
 </html>

@@ -1,10 +1,7 @@
 package com.example.demo.kakao;
 
-
-import com.example.demo.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,5 +60,12 @@ public class KakaoController {
         kakaoService.kakaoDisconnect(session);
 
         return "redirect:/index.html";
+    }
+
+    @GetMapping(value = "/kakao/userlist")
+    public String kakaoDisconnect(){
+        kakaoService.kakaoUserList();
+
+        return "redirect:/logined.html";
     }
 }
