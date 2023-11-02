@@ -20,7 +20,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Configuration // ** 현재 클래스를 (설정 클래스)로 설정
@@ -36,12 +35,6 @@ public class SecurityConfig {
             AuthenticationConfiguration authenticationConfiguration) throws Exception{
 
         return authenticationConfiguration.getAuthenticationManager();
-        // BCrypt : 기본으로 상요, 가장 많이 사용되는 알고리즘
-        // SCrypt : 개발자가 직접 필요에 따라 변경 가능
-        // Argon2
-        // PBKBF2
-        // MDS (현재는 안 씀)
-        // SHA-1, SHA-256 (현재는 안 씀) 등등
     }
 
     public class CustomSecurityFilterManager extends AbstractHttpConfigurer<CustomSecurityFilterManager, HttpSecurity>{
@@ -51,7 +44,7 @@ public class SecurityConfig {
                     AuthenticationManager.class
             );
 
-            // httpSecurity.addFilter(new JwtAuthenticationFilter(authenticationManager));
+            httpSecurity.addFilter(new JwtAuthenticationFilter(authenticationManager));
 
             super.configure(httpSecurity);
         }
@@ -81,20 +74,17 @@ public class SecurityConfig {
         // 7. 커스텀 필터 적용 (시큐리티 필터 교환) 커스텀 필터 적용
         http.apply(new CustomSecurityFilterManager());
 
-
         // 8. 인증 실패 처리
         http.exceptionHandling().authenticationEntryPoint((request, response, authException) -> {
             log.warn("인증되지 않은 사용자가 자원에 접근하려 합니다 : "+authException.getMessage());
             FilterResponseUtils.unAuthorized(response, new Exception401("인증되지 않았습니다"));
         });
 
-
         // 9. 권한 실패 처리
         http.exceptionHandling().accessDeniedHandler((request, response, accessDeniedException) -> {
             log.warn("권한이 없는 사용자가 자원에 접근하려 합니다 : "+accessDeniedException.getMessage());
             FilterResponseUtils.forbidden(response, new Exception403("권한이 없습니다"));
         });
-
 
         // 10. 인증, 권한 필터 설정
         http.authorizeRequests(
