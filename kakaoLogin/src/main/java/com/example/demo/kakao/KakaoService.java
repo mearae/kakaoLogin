@@ -19,11 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Transactional(readOnly = true) // 데이터 안정성을 위해 넣음
 @RequiredArgsConstructor // 생성자
 @Service // service로 인식시켜 줌
 public class KakaoService {
+
+    private final KakaoRepository kakaoRepository;
 
     private final String restApi = "f12393a3d014f5b41c1891bca7f2c800";
     private final String redirectUri1 = "http://localhost:8080/kakao/callback";
@@ -65,17 +68,17 @@ public class KakaoService {
     }
 
     // kakaoConnect의 결과값(인가코드)가 아래의 매개변수 code로 들어감
-    public void kakaoLogin(String code,HttpSession session){
+    public String kakaoLogin(String code,HttpSession session){
         try {
             // 인가코드 출력
-
             System.out.println("\nkakao code:" + code);
             // 인카코드에 있는 토큰을 추출
             JsonNode token = getKakaoAccessToken(code);
             JsonNode access_token = token.get("access_token");
-            session.setAttribute("access_token", access_token.asText());
+            session.setAttribute("access_token", access_token);
+            session.setAttribute("platform", "/kakao/");
             // 토큰에서 접근 토큰 획득 및 출력
-            System.out.println("access_token:" + access_token.asText());
+            System.out.println("access_token : " + access_token.asText());
 
             // 로그인한 클라이언트의 사용자 정보를 json 타입으로 획득
             JsonNode userInfo = getKakaoUserInfo(access_token);
@@ -89,12 +92,37 @@ public class KakaoService {
             // properties에서 id, nickname 출력
             System.out.println("id : " + userInfo.get("id").asText());
             System.out.println("name : " + properties.path("nickname").asText());
+
+            if (checkKakaoID(userInfo.get("id").asLong())){
+                return "/joinByKakao.html";
+            }
         }
         catch (Exception500 e){
             throw new Exception500("서버 오류");
         }
         catch (Exception e){
             e.printStackTrace();
+        }
+        return "/logined.html";
+    }
+
+    public boolean checkKakaoID(Long kakaoID){
+        // 동일한 이메일이 있는지 확인.
+        Optional<KakaoUser> kakaoUsers = kakaoRepository.findByKakaoID(kakaoID);
+        return kakaoUsers.isEmpty();
+    }
+
+    @Transactional
+    public void kakaoJoin(HttpSession session) {
+        try {
+            JsonNode access_token = (JsonNode) session.getAttribute("access_token");
+            JsonNode userInfo = getKakaoUserInfo(access_token);
+
+            KakaoRequest.JoinDto joinDto = new KakaoRequest.JoinDto();
+            joinDto.setKakaoID(userInfo.get("id").asLong());
+            kakaoRepository.save(joinDto.toEntity());
+        } catch (Exception e) {
+            throw new Exception500(e.getMessage());
         }
     }
 
@@ -155,7 +183,7 @@ public class KakaoService {
 
     public void kakaoLogout(HttpSession session){
         final String RequestUrl = "https://kapi.kakao.com/v1/user/logout";
-        String access_token = (String) session.getAttribute("access_token");
+        JsonNode access_token = (JsonNode) session.getAttribute("access_token");
 
         try{
             post = new HttpPost(RequestUrl);
@@ -181,8 +209,7 @@ public class KakaoService {
             StringBuffer url = new StringBuffer();
             url.append("https://kauth.kakao.com/oauth/logout?");
             url.append("client_id=").append(restApi);
-            final String redirectUri2 = "http://localhost:8080/kakao/oauth";
-            url.append("&logout_redirect_uri=").append(redirectUri2);
+            url.append("&logout_redirect_uri=" + "http://localhost:8080/kakao/oauth");
 
             System.out.println("\nSending 'GET' request to URL : " + "https://kauth.kakao.com/oauth/logout");
             System.out.println("카카오톡에서 로그아웃 됨");
@@ -200,7 +227,7 @@ public class KakaoService {
 
     public void kakaoDisconnect(HttpSession session){
         final String RequestUrl = "https://kapi.kakao.com/v1/user/unlink";
-        String access_token = (String) session.getAttribute("access_token");
+        JsonNode access_token = (JsonNode) session.getAttribute("access_token");
 
         try{
             post = new HttpPost(RequestUrl);
@@ -262,5 +289,7 @@ public class KakaoService {
         return null;
     }
 
-
+    public void endServer(){
+        System.exit(0);
+    }
 }
