@@ -91,4 +91,10 @@ public class UserService {
             throw new Exception400("이미 존재하는 이메일입니다. : " + email);
         }
     }
+
+    public String platformData(HttpSession session) {
+        String ll = (String) session.getAttribute("platform");
+        System.out.println(ll);
+        return ll;
+    }
 }
