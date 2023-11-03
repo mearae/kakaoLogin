@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Kakotalk Page Form</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+        }
+
+        h1 {
+            color: #fff;
+        }
+
+        .btn {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .btn:hover {
+            background-color: #666;
+        }
+    </style>
+    <script>
+        function logout() {
+            // 현재 로그인된 플랫폼을 저장할 변수
+            var platform = '<%= session.getAttribute("platform") %>';
+
+            alert(platform);
+
+            // 로그아웃 URL 설정
+            var logoutUrl = 'http://localhost:8080/' + platform + '/logout';
+
+            console.log(location.href);
+            location.href = logoutUrl;
+        }
+    </script>
+</head>
+<body>
+<h1>Kakotalk Page</h1>
+<%
+String platform = (String)session.getAttribute("platform");
+%>
+
+platform : <%=platform %><br>
+
+
+<form id="joinForm">
+    <div class="col">
+        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/userlist">카카오톡 사용자들 출력</a>
+    </div> <br>
+
+    <div class="col">
+        <button class="btn btn-lg btn-secondary" onclick="logout()">로그아웃</button>
+    </div>
+
+    <div class="col">
+        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/fulllogout">X 카카오 로그아웃하기</a>
+    </div>
+
+    <div class="col">
+        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/disconnect">X 카카오와 연결 끊기</a>
+    </div>
+</form>
+</body>
+</html>
