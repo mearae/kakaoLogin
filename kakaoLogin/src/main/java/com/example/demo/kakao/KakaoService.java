@@ -190,6 +190,7 @@ public class KakaoService {
             post.addHeader("Authorization", "Bearer " + access_token);
 
             final HttpResponse response = client.execute(post);
+            session.removeAttribute("platform");
             JsonNode returnNode = jsonResponse(response);
 
             System.out.println("\nSending 'POST' request to URL : " + RequestUrl);

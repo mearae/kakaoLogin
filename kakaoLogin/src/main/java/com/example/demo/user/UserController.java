@@ -4,6 +4,7 @@ import com.example.demo.core.security.JwtTokenProvider;
 import com.example.demo.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 @RequiredArgsConstructor
-@RestController
+@Controller
 public class UserController {
 
     private final UserService userService;
@@ -42,9 +43,16 @@ public class UserController {
     }
 
     @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest req, Error error){
+    public String  logout(HttpServletRequest req, Error error){
         userService.logout(req.getSession());
 
-        return ResponseEntity.ok(ApiUtils.success(null));
+        return "redirect:/index.html";
+    }
+
+    @GetMapping(value = "/platform")
+    public String platformData(HttpServletRequest req){
+        String platform = userService.platformData(req.getSession());
+
+        return platform;
     }
 }
