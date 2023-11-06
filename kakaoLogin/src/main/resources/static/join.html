@@ -4,6 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <title>Join Form</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+        }
+
+        h1 {
+            color: #fff;
+        }
+
+        .btn {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .btn:hover {
+            background-color: #666;
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -24,7 +43,7 @@
                 };
 
                 try {
-                    const response = await fetch('http://localhost:8080/join', {
+                    const response = await fetch('http://localhost:8080/user/join', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
