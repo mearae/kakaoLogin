@@ -62,7 +62,7 @@ public class UserService {
             // ** 인증 완료 값을 받아온다.
             // 인증키
             CustomUserDetails customUserDetails = (CustomUserDetails)authentication.getPrincipal();
-            session.setAttribute("platform","/");
+            session.setAttribute("platform","/user/");
 
             return JwtTokenProvider.create(customUserDetails.getUser());
         }catch (Exception e){
@@ -72,7 +72,6 @@ public class UserService {
 
     public void logout(HttpSession session){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         session.invalidate();
         JwtTokenProvider.invalidateToken(authentication);
     }

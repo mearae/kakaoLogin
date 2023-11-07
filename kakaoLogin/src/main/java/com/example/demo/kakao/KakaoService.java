@@ -2,6 +2,9 @@ package com.example.demo.kakao;
 
 import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception500;
+import com.example.demo.user.User;
+import com.example.demo.user.UserRepository;
+import com.example.demo.user.UserRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,8 +29,8 @@ import java.util.Optional;
 @RequiredArgsConstructor // 생성자
 @Service // service로 인식시켜 줌
 public class KakaoService {
-
-    private final KakaoRepository kakaoRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     private final String restApi = "f12393a3d014f5b41c1891bca7f2c800";
     private final String redirectUri1 = "http://localhost:8080/kakao/callback";
@@ -89,11 +93,13 @@ public class KakaoService {
 
             // 사용자 정보에서 properties 값 추출 (이름, 프로필, ...)
             JsonNode properties = userInfo.path("properties");
+            JsonNode kakao_account = userInfo.path("kakao_account");
             // properties에서 id, nickname 출력
+            System.out.println(userInfo.toPrettyString());
             System.out.println("id : " + userInfo.get("id").asText());
             System.out.println("name : " + properties.path("nickname").asText());
-
-            if (checkKakaoID(userInfo.get("id").asLong())){
+            System.out.println("email : " + kakao_account.path("email").asText());
+            if (!checkEmail(kakao_account.path("email").asText())){
                 return "/joinByKakao.html";
             }
         }
@@ -106,21 +112,29 @@ public class KakaoService {
         return "/logined.html";
     }
 
-    public boolean checkKakaoID(Long kakaoID){
+    public boolean checkEmail(String email){
         // 동일한 이메일이 있는지 확인.
-        Optional<KakaoUser> kakaoUsers = kakaoRepository.findByKakaoID(kakaoID);
-        return kakaoUsers.isEmpty();
+        Optional<User> users = userRepository.findByEmail(email);
+        return users.isPresent();
     }
 
     @Transactional
     public void kakaoJoin(HttpSession session) {
-        try {
-            JsonNode access_token = (JsonNode) session.getAttribute("access_token");
-            JsonNode userInfo = getKakaoUserInfo(access_token);
+        JsonNode access_token = (JsonNode) session.getAttribute("access_token");
+        JsonNode userInfo = getKakaoUserInfo(access_token);
 
-            KakaoRequest.JoinDto joinDto = new KakaoRequest.JoinDto();
-            joinDto.setKakaoID(userInfo.get("id").asLong());
-            kakaoRepository.save(joinDto.toEntity());
+        UserRequest.JoinDto joinDto = new UserRequest.JoinDto();
+        JsonNode properties = userInfo.path("properties");
+        JsonNode kakao_account = userInfo.path("kakao_account");
+        String encodedPassword = passwordEncoder.encode(access_token.asText());
+
+        // 지금은 권한이 제한되어 있어 비밀번호는 카카오톡 토큰으로, 전화번호는 임시로 설정
+        joinDto.setEmail(kakao_account.path("email").asText());
+        joinDto.setPassword(encodedPassword);
+        joinDto.setName(properties.path("nickname").asText());
+        joinDto.setPhoneNumber("01012341234");
+        try {
+            userRepository.save(joinDto.toEntity());
         } catch (Exception e) {
             throw new Exception500(e.getMessage());
         }
@@ -191,6 +205,7 @@ public class KakaoService {
 
             final HttpResponse response = client.execute(post);
             session.removeAttribute("platform");
+            session.invalidate();
             JsonNode returnNode = jsonResponse(response);
 
             System.out.println("\nSending 'POST' request to URL : " + RequestUrl);
