@@ -1,7 +1,9 @@
 package com.example.demo.kakao;
 
+import com.example.demo.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,10 +46,10 @@ public class KakaoController {
     }
 
     @GetMapping("/kakao/join")
-    public String kakaoJoin(HttpServletRequest req){
+    public ResponseEntity<?> kakaoJoin(HttpServletRequest req){
         kakaoService.kakaoJoin(req.getSession());
 
-        return "redirect:/logined.html";
+        return ResponseEntity.ok(ApiUtils.success(null));
     }
 
     @GetMapping("/kakao/logout")
@@ -68,7 +70,6 @@ public class KakaoController {
     public String kakaoDisconnect(HttpServletRequest req){
         kakaoService.kakaoDisconnect(req.getSession());
 
-        //return ResponseEntity.ok(ApiUtils.success(null));
         return "redirect:/index.html";
     }
 

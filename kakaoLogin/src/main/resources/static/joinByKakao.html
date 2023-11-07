@@ -42,12 +42,32 @@
             background-color: #45a049;
         }
     </style>
+    <script>
+        async function join() {
+            try {
+                const response = await fetch('http://localhost:8080/kakao/join');
+
+                const result = await response.json();
+
+                if (result.success){
+                    alert("회원가입에 성공하였습니다");
+                    console.log(location.href);
+                    location.href = 'logined.html';
+                }
+                else{
+                    alert("Error: " + result.error.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
 </head>
 <body>
 <h1>회원가입 여부</h1>
 <form id="kakaoJoinForm">
     <p>회원가입을 하시겠습니까?</p>
-    <button type="button" onclick="location.href='http://localhost:8080/kakao/join'">예</button>
+    <button type="button" class="btn btn-lg btn-secondary" onclick="join()">예</button>
     <button type="button" onclick="location.href='http://localhost:8080/kakao/logout'">아니오</button>
 </form>
 
