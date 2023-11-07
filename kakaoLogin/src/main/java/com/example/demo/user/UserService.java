@@ -5,7 +5,10 @@ import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.message.BasicNameValuePair;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -37,8 +40,6 @@ public class UserService {
         checkEmail(joinDto.getEmail());
 
         String encodedPassword = passwordEncoder.encode(joinDto.getPassword());
-
-        System.out.println("Final Hash: " + encodedPassword);
         joinDto.setPassword(encodedPassword);
 
         try {
@@ -56,24 +57,39 @@ public class UserService {
         try{
             UsernamePasswordAuthenticationToken token
                     = new UsernamePasswordAuthenticationToken(
-                            joinDto.getEmail(), joinDto.getPassword());
+                    joinDto.getEmail(), joinDto.getPassword());
             Authentication authentication
                     = authenticationManager.authenticate(token);
             // ** 인증 완료 값을 받아온다.
             // 인증키
             CustomUserDetails customUserDetails = (CustomUserDetails)authentication.getPrincipal();
-            session.setAttribute("platform","/user/");
 
-            return JwtTokenProvider.create(customUserDetails.getUser());
+            String prefixJwt = JwtTokenProvider.create(customUserDetails.getUser());
+            String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX,"");
+
+            BasicNameValuePair pair = new BasicNameValuePair("access_token", access_token);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonToken = objectMapper.valueToTree(pair);
+
+            session.setAttribute("access_token", jsonToken);
+            session.setAttribute("platform","user");
+            return prefixJwt;
         }catch (Exception e){
             throw new Exception401("인증되지 않음.");
         }
     }
 
-    public void logout(HttpSession session){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        session.invalidate();
-        JwtTokenProvider.invalidateToken(authentication);
+    public String logout(HttpSession session){
+        if (session.getAttribute("platform").equals("kakao")){
+            return "http://localhost:8080/kakao/logout";
+        } else {
+            session.removeAttribute("platform");
+            session.removeAttribute("access_token");
+            session.invalidate();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            JwtTokenProvider.invalidateToken(authentication);
+        }
+        return "index.html";
     }
 
     public void findAll() {
@@ -91,9 +107,7 @@ public class UserService {
         }
     }
 
-    public String platformData(HttpSession session) {
-        String ll = (String) session.getAttribute("platform");
-        System.out.println(ll);
-        return ll;
+    public JsonNode isAccessed(HttpSession session) {
+        return (JsonNode) session.getAttribute("access_token");
     }
 }
