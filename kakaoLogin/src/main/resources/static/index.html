@@ -14,15 +14,62 @@
         }
 
         .btn {
+            padding: 8px 12px;
+            border: none;
             background-color: #444;
             color: #fff;
+            cursor: pointer;
         }
 
         .btn:hover {
-            background-color: #666;
+            background-color: #FFD500;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        .form-container label {
+            margin-bottom: 10px;
+        }
+
+        .form-container input[type="email"],
+        .form-container input[type="password"] {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+        }
+
+        .form-container input[type="submit"],
+        #loginForm button {
+            padding: 8px 12px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
+        #kakaoForm button {
+            padding: 8px 12px;
+            border: none;
+            background-color: #FFEB00;
+            font-weight: 900;
+            color: #6C4900;
+            cursor: pointer;
+        }
+
+        .form-container button[type="button"] {
+            margin-top: 10px;
         }
     </style>
-
+    <!-- 로그인 -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('loginForm');
@@ -64,6 +111,7 @@
             });
         });
     </script>
+    <!-- 화면 로그인 유지 -->
     <script>
         async function isLogin() {
             try {
@@ -87,28 +135,30 @@
 
 <h1>Login</h1>
 
-<form id="loginForm">
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" ><br><br>
+<div class="form-container">
+    <form id="loginForm">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" ><br><br>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" ><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" ><br><br>
 
-    <input type="submit" value="Submit">
-    <button type="button" onclick="location.href='join.html'">회원가입</button>
-</form>
+        <input type="submit" value="로그인">
+        <button type="button" onclick="location.href='join.html'">회원가입</button>
+    </form>
 
-<form id="kakaoForm">
+    <form id="kakaoForm">
+        <div class="col">
+            <button type="button" class="btn btn-lg btn-secondary" onclick="location.href='http://localhost:8080/kakao/oauth'">카카오로 로그인하기</button>
+        </div>
+        <div class="col">
+            <button type="button" class="btn btn-lg btn-secondary" onclick="location.href='http://localhost:8080/kakao/relogin'">카카오로 다시 로그인하기</button>
+        </div>
+    </form>
     <div class="col">
-        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/oauth">카카오로 로그인하기</a>
+        <button type="button" class="btn btn-lg btn-secondary" onclick="location.href='http://localhost:8080/kakao/end'">서버 종료</button>
     </div>
-    <div class="col">
-        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/relogin">카카오로 다시 로그인하기</a>
-    </div>
-    <div class="col">
-        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/end">끝</a>
-    </div>
-</form>
+</div>
 
 </body>
 </html>

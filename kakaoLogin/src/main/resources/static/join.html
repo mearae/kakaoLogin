@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -21,6 +20,38 @@
 
         .btn:hover {
             background-color: #666;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        .form-container label {
+            margin-bottom: 10px;
+        }
+
+        .form-container input[type="email"],
+        .form-container input[type="password"],
+        .form-container input[type="text"] {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: none;
+            background-color: #555;
+            color: #fff;
+        }
+
+        .form-container input[type="submit"] {
+            padding: 8px 12px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
         }
     </style>
 
@@ -72,21 +103,23 @@
 
 <h1>Join</h1>
 
-<form id="joinForm">
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required><br><br>
+<div class="form-container">
+    <form id="joinForm">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
 
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required><br><br>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
 
-    <label for="phoneNumber">PhoneNumber:</label>
-    <input type="text" id="phoneNumber" name="phoneNumber" required><br><br>
+        <label for="phoneNumber">PhoneNumber:</label>
+        <input type="text" id="phoneNumber" name="phoneNumber" required><br><br>
 
-    <input type="submit" value="Submit">
-</form>
+        <input type="submit" value="회원가입 하시겠습니까?">
+    </form>
+</div>
 
 </body>
 </html>
