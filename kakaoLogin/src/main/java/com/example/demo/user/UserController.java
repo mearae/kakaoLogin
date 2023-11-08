@@ -2,6 +2,7 @@ package com.example.demo.user;
 
 import com.example.demo.core.security.JwtTokenProvider;
 import com.example.demo.core.utils.ApiUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,18 +39,8 @@ public class UserController {
     }
 
     @GetMapping("/user/logout")
-    public ResponseEntity<?> logout(HttpServletRequest req, Error error){
-        userService.logout(req.getSession());
-
-        return ResponseEntity.ok(ApiUtils.success(null));
-        //return "redirect:/index.html";
-    }
-
-    @GetMapping("/platform")
-    public String platformData(HttpServletRequest req){
-        String platform = userService.platformData(req.getSession());
-
-        return platform;
+    public String logout(HttpServletRequest req, Error error){
+        return userService.logout(req.getSession());
     }
 
     @GetMapping("/users")
@@ -57,5 +48,10 @@ public class UserController {
         userService.findAll();
 
         return ResponseEntity.ok(ApiUtils.success(null));
+    }
+
+    @GetMapping("/accessed")
+    public JsonNode isAccessed(HttpServletRequest req){
+        return userService.isAccessed(req.getSession());
     }
 }
