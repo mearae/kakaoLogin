@@ -97,6 +97,7 @@ public class UserService {
 
         for (User user : all){
             user.output();
+            System.out.println();
         }
     }
 
