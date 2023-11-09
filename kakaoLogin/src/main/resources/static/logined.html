@@ -21,6 +21,30 @@
         .btn:hover {
             background-color: #666;
         }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        .form-container .col {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .form-container button {
+            padding: 8px 12px;
+            border: none;
+            background-color: #444;
+            color: #fff;
+            cursor: pointer;
+        }
     </style>
     <script>
         async function print_users() {
@@ -54,19 +78,15 @@
 <body>
 <h1>Kakotalk Page</h1>
 
-<form id="loginedForm">
+<div class="form-container">
     <div class="col">
         <button class="btn btn-lg btn-secondary" onclick="print_users()">가입자들 출력</button>
-    </div>
-    <div class="col">
-        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/userlist">카카오톡 사용자들 출력</a>
+        <button type="button" class="btn btn-lg btn-secondary" onclick="location.href='http://localhost:8080/kakao/userlist'">카카오톡 사용자들 출력</button>
     </div>
     <div class="col">
         <button class="btn btn-lg btn-secondary" onclick="logout()">로그아웃</button>
+        <button type="button" class="btn btn-lg btn-secondary" onclick="location.href='http://localhost:8080/kakao/fulllogout'">카카오 로그아웃</button>
     </div>
-    <div class="col">
-        <a class="btn btn-lg btn-secondary" href="http://localhost:8080/kakao/fulllogout">카카오 로그아웃</a>
-    </div>
-</form>
+</div>
 </body>
 </html>

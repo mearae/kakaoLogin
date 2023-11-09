@@ -47,11 +47,11 @@ public class User {
     }
 
     public void output(){
-        System.out.println(id);
-        System.out.println(email);
-        System.out.println(password);
-        System.out.println(name);
-        System.out.println(phoneNumber);
-        System.out.println(roles);
+        System.out.println("id : \t\t\t" + id);
+        System.out.println("email : \t\t" + email);
+        System.out.println("password : \t\t" + password);
+        System.out.println("name : \t\t\t" + name);
+        System.out.println("phoneNumber : \t" + phoneNumber);
+        System.out.println("roles : \t\t" + roles);
     }
 }

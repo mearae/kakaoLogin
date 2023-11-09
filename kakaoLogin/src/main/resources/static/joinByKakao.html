@@ -2,23 +2,24 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>회원가입 여부</title>
+    <title>Join Form</title>
     <style>
         body {
+            background-color: #222;
+            color: #fff;
             font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
             margin: 0;
             padding: 20px;
             text-align: center;
         }
 
         h1 {
-            color: #333;
+            color: #fff;
         }
 
         form {
             display: inline-block;
-            background-color: #fff;
+            background-color: #333;
             border-radius: 5px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -26,10 +27,11 @@
 
         p {
             margin-bottom: 20px;
+            color: #fff;
         }
 
         button {
-            background-color: #4CAF50;
+            background-color: #444;
             color: #fff;
             padding: 10px 20px;
             border: none;
@@ -39,7 +41,7 @@
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #666;
         }
     </style>
     <script>
@@ -64,7 +66,7 @@
     </script>
 </head>
 <body>
-<h1>회원가입 여부</h1>
+<h1>Join Form</h1>
 <form id="kakaoJoinForm">
     <p>회원가입을 하시겠습니까?</p>
     <button type="button" class="btn btn-lg btn-secondary" onclick="join()">예</button>
