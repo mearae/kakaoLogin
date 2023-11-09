@@ -17,7 +17,6 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private int id;
 
     @Column(length = 100, nullable = false, unique = true)
@@ -36,22 +35,37 @@ public class User {
     @Convert(converter = StringArrayConverter.class)
     private List<String> roles = new ArrayList<>();
 
+    @Column(length = 255)
+    private String access_token;
+
+    @Column(length = 255)
+    private String refresh_token;
+
+    @Column(length = 255)
+    private String platform;
+
     @Builder
-    public User(int id, String email, String password, String name, String phoneNumber, List<String> roles) {
+    public User(int id, String email, String password, String name, String phoneNumber, List<String> roles, String access_token, String refresh_token, String platform) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.roles = roles;
+        this.access_token = access_token;
+        this.refresh_token = refresh_token;
+        this.platform = platform;
     }
 
     public void output(){
-        System.out.println("id : \t\t\t" + id);
-        System.out.println("email : \t\t" + email);
-        System.out.println("password : \t\t" + password);
-        System.out.println("name : \t\t\t" + name);
-        System.out.println("phoneNumber : \t" + phoneNumber);
-        System.out.println("roles : \t\t" + roles);
+        System.out.println(       "\t\tid :" + "\t" + id);
+        System.out.println(      "\temail :" + "\t" + email);
+        System.out.println(   "\tpassword :" + "\t" + password);
+        System.out.println(     "\t\tname :" + "\t" + name);
+        System.out.println(  "phoneNumber :" + "\t" + phoneNumber);
+        System.out.println(      "\troles :" + "\t" + roles);
+        System.out.println( "access_token :" + "\t" + access_token);
+        System.out.println("refresh_token :" + "\t" + refresh_token);
+        System.out.println(   "\tplatform :" + "\t" + platform);
     }
 }

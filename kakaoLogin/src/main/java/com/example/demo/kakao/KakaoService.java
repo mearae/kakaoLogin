@@ -34,14 +34,13 @@ public class KakaoService {
     private final PasswordEncoder passwordEncoder;
 
     private final String restApi = "f12393a3d014f5b41c1891bca7f2c800";
-    private final String redirectUri1 = "http://localhost:8080/kakao/callback";
     private final String adminKey = "c1c3d919965c4c45df1da058b54a53f4";
 
     public String kakaoConnect(){
         StringBuffer url = new StringBuffer();
         url.append("https://kauth.kakao.com/oauth/authorize?");
         url.append("client_id=").append(restApi);
-        url.append("&redirect_uri=").append(redirectUri1);
+        url.append("&redirect_uri=").append("http://localhost:8080/kakao/callback");
         url.append("&response_type=" + "code");
 
         // https://kauth.kakao.com/oauth/authorize : Get 요청할 링크
@@ -74,7 +73,7 @@ public class KakaoService {
             // 인카코드에 있는 토큰을 추출
             JsonNode token = getKakaoAccessToken(code);
             JsonNode access_token = token.get("access_token");
-            session.setAttribute("access_token", access_token);
+            //session.setAttribute("access_token", access_token);
             session.setAttribute("platform", "kakao");
 
             // 로그인한 클라이언트의 사용자 정보를 json 타입으로 획득
@@ -127,7 +126,7 @@ public class KakaoService {
         // 매개변수와 값 추가
         postParams.add(new BasicNameValuePair("grant_type", "authorization_code")); // 인증 타입 (고정값임)
         postParams.add(new BasicNameValuePair("client_id", restApi)); // REST API KEY
-        postParams.add(new BasicNameValuePair("redirect_uri", redirectUri1)); // 리다이렉트 URI
+        postParams.add(new BasicNameValuePair("redirect_uri", "http://localhost:8080/kakao/callback")); // 리다이렉트 URI
         postParams.add(new BasicNameValuePair("code", code)); // 인가 코드
 
         final HttpResponse response = kakaoPost(requestUrl,null,postParams);
@@ -265,7 +264,15 @@ public class KakaoService {
     }
 
     public void endServer(){
-
         System.exit(0);
+    }
+
+    public void getTokenInfo(JsonNode access_token) {
+        final String requestUrl = "https://kapi.kakao.com/v1/user/access_token_info";
+
+        final HttpResponse response = kakaoGet(requestUrl,"Bearer " + access_token,null);
+
+        JsonNode token_info =  jsonResponse(response);
+        System.out.println(token_info.toPrettyString());
     }
 }
