@@ -65,12 +65,18 @@
                 const password = document.getElementById('password').value;
                 const name = document.getElementById('name').value;
                 const phoneNumber = document.getElementById('phoneNumber').value;
+                const access_token = "-";
+                const refresh_token = "-";
+                const platform = "user";
 
                 const data = {
                     email,
                     password,
                     name,
-                    phoneNumber
+                    phoneNumber,
+                    access_token,
+                    refresh_token,
+                    platform
                 };
 
                 try {

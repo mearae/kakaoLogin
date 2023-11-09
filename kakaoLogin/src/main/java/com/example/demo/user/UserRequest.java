@@ -3,6 +3,7 @@ package com.example.demo.user;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -30,6 +31,27 @@ public class UserRequest {
         @Pattern(regexp = "^[0-9]{10,11}$", message = "휴대폰 번호는 숫자 10~11자리만 가능합니다.")
         private String phoneNumber;
 
+        @NotEmpty
+        private String access_token;
+
+        @NotEmpty
+        private String refresh_token;
+
+        @NotEmpty
+        private String platform;
+
+        public JoinDto() {}
+
+        public JoinDto(User user){
+            this.email = user.getEmail();
+            this.password = user.getEmail();
+            this.name = user.getEmail();
+            this.phoneNumber = user.getEmail();
+            this.access_token = user.getEmail();
+            this.refresh_token = user.getEmail();
+            this.platform = user.getEmail();
+        }
+
         public User toEntity(){
             return User.builder()
                     .email(email)
@@ -37,6 +59,9 @@ public class UserRequest {
                     .name(name)
                     .phoneNumber(phoneNumber)
                     .roles(Collections.singletonList("ROLE_USER"))
+                    .access_token(access_token)
+                    .refresh_token(refresh_token)
+                    .platform(platform)
                     .build();
         }
     }
