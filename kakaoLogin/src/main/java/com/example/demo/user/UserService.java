@@ -65,14 +65,13 @@ public class UserService {
             CustomUserDetails customUserDetails = (CustomUserDetails)authentication.getPrincipal();
 
             String prefixJwt = JwtTokenProvider.create(customUserDetails.getUser());
-            String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX,"");
+            String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
+            String refreshToken = JwtTokenProvider.createRefresh(customUserDetails.getUser());
 
-            BasicNameValuePair pair = new BasicNameValuePair("access_token", access_token);
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonToken = objectMapper.valueToTree(pair);
-
-            session.setAttribute("access_token", jsonToken);
-            session.setAttribute("platform","user");
+            UserRequest.JoinDto joinDto1 = new UserRequest.JoinDto(customUserDetails.getUser());
+            joinDto1.setAccess_token(access_token);
+            joinDto1.setRefresh_token(refreshToken);
+            userRepository.save(joinDto1.toEntity());
             return prefixJwt;
         }catch (Exception e){
             throw new Exception401("인증되지 않음.");

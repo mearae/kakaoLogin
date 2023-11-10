@@ -13,6 +13,7 @@ import java.util.Date;
 
 public class JwtTokenProvider {
     private static final Long EXP = 1000L * 60 * 60;
+    private static final Long REFRESH_EXP = 1000L * 60 * 60 * 24 * 60;
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER = "Authorization";
     private static final String SECRET = "SECRET_KEY";
@@ -32,6 +33,22 @@ public class JwtTokenProvider {
                 .withClaim("roles", roles)
                 .sign(Algorithm.HMAC512(SECRET));// ** JWT 생성 알고리즘 설정
         return TOKEN_PREFIX + jwt;
+    }
+
+    public static String createRefresh(User user){
+        StringArrayConverter stringArrayConverter = new StringArrayConverter();
+
+        String roles = stringArrayConverter.convertToDatabaseColumn(
+                user.getRoles()
+        );
+
+        String jwt = JWT.create()
+                .withSubject(user.getEmail())// ** 토큰의 대상정보 셋팅
+                .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_EXP))
+                .withClaim("id", user.getId())
+                .withClaim("roles", roles)
+                .sign(Algorithm.HMAC512(SECRET));// ** JWT 생성 알고리즘 설정
+        return jwt;
     }
 
     // **  JWT 토큰 문자열을 검증하고, 유효하다면 디코딩된 DecodedJWT 객체를 반환.
