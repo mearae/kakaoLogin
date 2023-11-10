@@ -43,7 +43,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
         // ** Bearer 제거
         String jwt = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
-
         try {
             log.debug("토큰 있음.");
 
@@ -57,13 +56,18 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             // ** 사용자 정보 추출
             int id = decodedJWT.getClaim("id").asInt();
             String roles = decodedJWT.getClaim("roles").asString();
+            String refresh_token = decodedJWT.getClaim("refresh_token").asString();
 
             // ** 권한 정보를 문자열 리스트로 변환
             StringArrayConverter stringArrayConverter = new StringArrayConverter();
             List<String> rolesList = stringArrayConverter.convertToEntityAttribute(roles);
 
             // ** 추출한 정보로 User를 생성
-            User user = User.builder().id(id).roles(rolesList).build();
+            User user = User.builder()
+                    .id(id)
+                    .access_token(jwt)
+                    .roles(rolesList)
+                    .build();
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
 
             // ** Spring Security / 인증 정보를 관리하는데 사용
