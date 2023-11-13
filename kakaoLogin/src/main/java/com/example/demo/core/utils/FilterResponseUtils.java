@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-// ** 에러 메시지를 HTTP 응답으로 설정하고 JSON 형태로 반환하는 유틸리티
+// ** 에러 메시지를 HTTP 응답응답으로 설정하고 JSON 형태로 반환하는 유틸리티
 public class FilterResponseUtils {
 
     // ** 401 에러

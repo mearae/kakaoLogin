@@ -3,6 +3,7 @@ package com.example.demo.core.security;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.user.StringArrayConverter;
 import com.example.demo.user.User;
@@ -55,6 +56,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             // ** 사용자 정보 추출
             int id = decodedJWT.getClaim("id").asInt();
             String roles = decodedJWT.getClaim("roles").asString();
+            String refresh_token = decodedJWT.getClaim("refresh_token").asString();
 
             // ** 권한 정보를 문자열 리스트로 변환
             StringArrayConverter stringArrayConverter = new StringArrayConverter();
@@ -63,6 +65,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             // ** 추출한 정보로 User를 생성
             User user = User.builder()
                     .id(id)
+                    .access_token(jwt)
                     .roles(rolesList)
                     .build();
             CustomUserDetails customUserDetails = new CustomUserDetails(user);
@@ -77,6 +80,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             // ** SecurityContext에 저장
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("인증 객체 생성");
+
         }
         catch (SignatureVerificationException sve) {
             log.debug("토큰 검증 실패");

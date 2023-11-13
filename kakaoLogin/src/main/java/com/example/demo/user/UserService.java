@@ -8,11 +8,14 @@ import com.example.demo.core.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,24 +64,8 @@ public class UserService {
         }
     }
 
-    public void login(UserRequest.JoinDto joinDto) {
-        final String oauthUrl = "http://localhost:8080/user/oauth";
-        String requestBody = "{\"email\": \"" + joinDto.getEmail() + "\", " +
-                "\"password\": \"" + joinDto.getPassword() + "\", " +
-                "\"name\": \"" + joinDto.getName() + "\", " +
-                "\"phoneNumber\": \"" + joinDto.getPhoneNumber() + "\", " +
-                "\"access_token\": \"" + joinDto.getAccess_token() + "\", " +
-                "\"refresh_token\": \"" + joinDto.getRefresh_token() + "\", " +
-                "\"platform\": \"" + joinDto.getPlatform() + "\"}";
-
-        final HttpResponse response = userPost(oauthUrl, null, requestBody);
-
-        final String userInfoUrl = "http://localhost:8080/user/user_info";
-        userPost(userInfoUrl, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(), null);
-    }
-
     @Transactional
-    public String connect(UserRequest.JoinDto joinDto) {
+    public String login(UserRequest.JoinDto joinDto) {
         // ** 인증 작업
         try{
             UsernamePasswordAuthenticationToken token
@@ -91,7 +81,7 @@ public class UserService {
             String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
             String refreshToken = JwtTokenProvider.createRefresh(customUserDetails.getUser());
 
-            User user = customUserDetails.getUser();
+            User user = userRepository.findByEmail(customUserDetails.getUsername()).get();
             user.setAccess_token(access_token);
             user.setRefresh_token(refreshToken);
             userRepository.save(user);
@@ -100,10 +90,6 @@ public class UserService {
         }catch (Exception e){
             throw new Exception401("인증되지 않음.");
         }
-    }
-
-    public User getUserInfo(int id){
-        return userRepository.findById(id).get();
     }
 
     public String logout(){
@@ -135,8 +121,27 @@ public class UserService {
         }
     }
 
+
+
     public JsonNode isAccessed(HttpSession session) {
         return (JsonNode) session.getAttribute("access_token");
+    }
+
+    public void userSetting(UserRequest.JoinDto joinDto) {
+        final String requestUrl = "http://localhost:8080/user/user_login";
+        String requestBody = "{\"email\": \"" + joinDto.getEmail() + "\", " +
+                "\"password\": \"" + joinDto.getPassword() + "\", " +
+                "\"name\": \"" + joinDto.getName() + "\", " +
+                "\"phoneNumber\": \"" + joinDto.getPhoneNumber() + "\", " +
+                "\"access_token\": \"" + joinDto.getAccess_token() + "\", " +
+                "\"refresh_token\": \"" + joinDto.getRefresh_token() + "\", " +
+                "\"platform\": \"" + joinDto.getPlatform() + "\"}";
+
+        final HttpResponse response = userPost(requestUrl, null, requestBody);
+
+        final String requestUrl2 = "http://localhost:8080/user_info";
+
+        userPost(requestUrl2, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(),null);
     }
 
     public HttpResponse userPost(String requestUrl, String authorization, String body){
@@ -145,6 +150,7 @@ public class UserService {
 
             // 위에서 설정한 매개변수와 값 리스트로 post 요청 객체 완성
             HttpPost post = new HttpPost(requestUrl);
+
 
             if (authorization != null)
                 post.addHeader("Authorization", authorization);

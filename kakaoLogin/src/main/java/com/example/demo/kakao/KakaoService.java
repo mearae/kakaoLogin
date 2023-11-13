@@ -129,7 +129,7 @@ public class KakaoService {
         postParams.add(new BasicNameValuePair("redirect_uri", "http://localhost:8080/kakao/callback")); // 리다이렉트 URI
         postParams.add(new BasicNameValuePair("code", code)); // 인가 코드
 
-        final HttpResponse response = kakaoPost(requestUrl,null, postParams);
+        final HttpResponse response = kakaoPost(requestUrl,null,postParams);
 
         return jsonResponse(response);
     }

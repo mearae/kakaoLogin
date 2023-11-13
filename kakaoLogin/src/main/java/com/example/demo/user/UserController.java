@@ -6,7 +6,9 @@ import com.example.demo.core.utils.ApiUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,9 +34,9 @@ public class UserController {
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @PostMapping("/user/oauth")
-    public ResponseEntity<?> connect(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
-        String jwt = userService.connect(joinDto);
+    @PostMapping("/user/user_login")
+    public ResponseEntity<?> authorize(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
+        String jwt = userService.login(joinDto);
 
         return ResponseEntity.ok().header(JwtTokenProvider.HEADER, jwt)
                 .body(ApiUtils.success(null));
@@ -42,7 +44,7 @@ public class UserController {
 
     @PostMapping("/user/login")
     public ResponseEntity<?> login(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
-        userService.login(joinDto);
+        userService.userSetting(joinDto);
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
@@ -63,18 +65,11 @@ public class UserController {
         return userService.isAccessed(req.getSession());
     }
 
-    @PostMapping("/user/user_info")
-    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal CustomUserDetails customUserDetails){
-        User user = customUserDetails.getUser();
-        if (user == null){
-            System.out.println("값 없음");
-        } else {
-            System.out.println(user.getId());
-            System.out.println(user.getEmail());
-            System.out.println(user.getPassword());
-            System.out.println(user.getAccess_token());
-            System.out.println(user.getRefresh_token());
-        }
+    @PostMapping("/user_info")
+    public ResponseEntity<?> getCurrentUser(@CurrentSecurityContext(expression = "authentication") Authentication authentication){
+        CustomUserDetails details = (CustomUserDetails) authentication.getPrincipal();
+        User user = details.getUser();
+
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 }
