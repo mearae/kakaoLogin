@@ -21,7 +21,6 @@ public class SignUpMessageSender {
     // ** nurigo -> 좌측 메뉴 -> 아래쪽 SDK 다운로드 -> Java용 SDK -> Github Repo -> gradle-spring-demo/src/main/java/net/nurigo/gradlespringdemo/ExampleController.java
     private static final String DOMAIN = "https://api.solapi.com";
 
-
     private static DefaultMessageService messageService = null;
 
     @Bean

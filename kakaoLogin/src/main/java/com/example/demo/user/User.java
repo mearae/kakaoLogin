@@ -41,7 +41,7 @@ public class User {
     @Column(length = 255)
     private String refresh_token;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String platform;
 
     @Builder
