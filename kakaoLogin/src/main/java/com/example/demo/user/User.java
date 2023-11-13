@@ -41,7 +41,7 @@ public class User {
     @Column(length = 255)
     private String refresh_token;
 
-    @Column(length = 255)
+    @Column(length = 100)
     private String platform;
 
     @Builder
@@ -55,6 +55,14 @@ public class User {
         this.access_token = access_token;
         this.refresh_token = refresh_token;
         this.platform = platform;
+    }
+
+    public void setAccess_token(String access_token) {
+        this.access_token = access_token;
+    }
+
+    public void setRefresh_token(String refresh_token) {
+        this.refresh_token = refresh_token;
     }
 
     public void output(){

@@ -40,18 +40,6 @@ public class UserRequest {
         @NotEmpty
         private String platform;
 
-        public JoinDto() {}
-
-        public JoinDto(User user){
-            this.email = user.getEmail();
-            this.password = user.getEmail();
-            this.name = user.getEmail();
-            this.phoneNumber = user.getEmail();
-            this.access_token = user.getEmail();
-            this.refresh_token = user.getEmail();
-            this.platform = user.getEmail();
-        }
-
         public User toEntity(){
             return User.builder()
                     .email(email)

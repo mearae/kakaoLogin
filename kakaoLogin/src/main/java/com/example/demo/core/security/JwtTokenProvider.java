@@ -53,7 +53,6 @@ public class JwtTokenProvider {
 
     // **  JWT 토큰 문자열을 검증하고, 유효하다면 디코딩된 DecodedJWT 객체를 반환.
     public static DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
-
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET)) // 검증 방법
                 .build()
                 .verify(jwt); // 검증 할 것
