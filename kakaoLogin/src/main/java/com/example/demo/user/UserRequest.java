@@ -46,8 +46,8 @@ public class UserRequest {
                     .name(name)
                     .phoneNumber(phoneNumber)
                     .roles(Collections.singletonList("ROLE_USER"))
-                    .access_token(access_token)
-                    .refresh_token(refresh_token)
+                    .access_token(null)
+                    .refresh_token(null)
                     .platform(platform)
                     .build();
         }

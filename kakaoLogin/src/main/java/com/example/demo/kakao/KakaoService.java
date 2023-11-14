@@ -80,7 +80,7 @@ public class KakaoService {
             // 인카코드에 있는 토큰을 추출
             JsonNode token = getKakaoAccessToken(code);
             JsonNode access_token = token.get("access_token");
-            //session.setAttribute("access_token", access_token);
+            session.setAttribute("access_token", access_token);
             session.setAttribute("platform", "kakao");
 
             // 로그인한 클라이언트의 사용자 정보를 json 타입으로 획득
@@ -119,6 +119,9 @@ public class KakaoService {
         joinDto.setPhoneNumber("01012341234");
         try {
             userRepository.save(joinDto.toEntity());
+            User user = joinDto.toEntity();
+            user.setAccess_token(access_token.asText());
+//            user.setRefresh_token();
         } catch (Exception e) {
             throw new Exception500(e.getMessage());
         }

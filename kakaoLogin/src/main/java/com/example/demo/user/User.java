@@ -66,14 +66,14 @@ public class User {
     }
 
     public void output(){
-        System.out.println(       "\t\tid :" + "\t" + id);
-        System.out.println(      "\temail :" + "\t" + email);
-        System.out.println(   "\tpassword :" + "\t" + password);
-        System.out.println(     "\t\tname :" + "\t" + name);
-        System.out.println(  "phoneNumber :" + "\t" + phoneNumber);
-        System.out.println(      "\troles :" + "\t" + roles);
-        System.out.println( "access_token :" + "\t" + access_token);
+        System.out.println("           id :" + "\t" + id);
+        System.out.println("        email :" + "\t" + email);
+        System.out.println("     password :" + "\t" + password);
+        System.out.println("         name :" + "\t" + name);
+        System.out.println("  phoneNumber :" + "\t" + phoneNumber);
+        System.out.println("        roles :" + "\t" + roles);
+        System.out.println(" access_token :" + "\t" + access_token);
         System.out.println("refresh_token :" + "\t" + refresh_token);
-        System.out.println(   "\tplatform :" + "\t" + platform);
+        System.out.println("     platform :" + "\t" + platform);
     }
 }
