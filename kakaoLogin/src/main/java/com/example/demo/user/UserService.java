@@ -8,14 +8,11 @@ import com.example.demo.core.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,9 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -65,7 +59,7 @@ public class UserService {
     }
 
     @Transactional
-    public String login(UserRequest.JoinDto joinDto) {
+    public String connect(UserRequest.JoinDto joinDto) {
         // ** 인증 작업
         try{
             UsernamePasswordAuthenticationToken token
@@ -89,6 +83,28 @@ public class UserService {
             return prefixJwt;
         }catch (Exception e){
             throw new Exception401("인증되지 않음.");
+        }
+    }
+
+    public void login(UserRequest.JoinDto joinDto) {
+        try {
+            final String oauthUrl = "http://localhost:8080/user/oauth";
+            String requestBody = "{\"email\": \"" + joinDto.getEmail() + "\", " +
+                    "\"password\": \"" + joinDto.getPassword() + "\", " +
+                    "\"name\": \"" + joinDto.getName() + "\", " +
+                    "\"phoneNumber\": \"" + joinDto.getPhoneNumber() + "\", " +
+                    "\"access_token\": \"" + joinDto.getAccess_token() + "\", " +
+                    "\"refresh_token\": \"" + joinDto.getRefresh_token() + "\", " +
+                    "\"platform\": \"" + joinDto.getPlatform() + "\"}";
+
+            final HttpResponse response = userPost(oauthUrl, null, requestBody);
+
+            final String infoUrl = "http://localhost:8080/user_info";
+
+            userPost(infoUrl, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(), null);
+
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
         }
     }
 
@@ -121,27 +137,8 @@ public class UserService {
         }
     }
 
-
-
     public JsonNode isAccessed(HttpSession session) {
         return (JsonNode) session.getAttribute("access_token");
-    }
-
-    public void userSetting(UserRequest.JoinDto joinDto) {
-        final String requestUrl = "http://localhost:8080/user/user_login";
-        String requestBody = "{\"email\": \"" + joinDto.getEmail() + "\", " +
-                "\"password\": \"" + joinDto.getPassword() + "\", " +
-                "\"name\": \"" + joinDto.getName() + "\", " +
-                "\"phoneNumber\": \"" + joinDto.getPhoneNumber() + "\", " +
-                "\"access_token\": \"" + joinDto.getAccess_token() + "\", " +
-                "\"refresh_token\": \"" + joinDto.getRefresh_token() + "\", " +
-                "\"platform\": \"" + joinDto.getPlatform() + "\"}";
-
-        final HttpResponse response = userPost(requestUrl, null, requestBody);
-
-        final String requestUrl2 = "http://localhost:8080/user_info";
-
-        userPost(requestUrl2, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(),null);
     }
 
     public HttpResponse userPost(String requestUrl, String authorization, String body){
@@ -161,8 +158,7 @@ public class UserService {
             // 클라이언트(나)가 링크로 post 요청 보냄 -> 그 응답 넣음
             return client.execute(post);
         }catch (Exception e){
-            e.printStackTrace();
+            throw new Exception500(e.getMessage());
         }
-        return null;
     }
 }

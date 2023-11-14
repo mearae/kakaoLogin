@@ -1,6 +1,5 @@
 package com.example.demo.kakao;
 
-import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
 import com.example.demo.user.User;
@@ -37,34 +36,42 @@ public class KakaoService {
     private final String adminKey = "c1c3d919965c4c45df1da058b54a53f4";
 
     public String kakaoConnect(){
-        StringBuffer url = new StringBuffer();
-        url.append("https://kauth.kakao.com/oauth/authorize?");
-        url.append("client_id=").append(restApi);
-        url.append("&redirect_uri=").append("http://localhost:8080/kakao/callback");
-        url.append("&response_type=" + "code");
+        try {
+            StringBuffer url = new StringBuffer();
+            url.append("https://kauth.kakao.com/oauth/authorize?");
+            url.append("client_id=").append(restApi);
+            url.append("&redirect_uri=").append("http://localhost:8080/kakao/callback");
+            url.append("&response_type=" + "code");
 
-        // https://kauth.kakao.com/oauth/authorize : Get 요청할 링크
-        // ? : 뒤에 매개변수를 넣어줌
-        // client_id : 클라이언트(고객)의 id (매개변수 이름)
-        // = : 대입
-        // f12393a3d014f5b41c1891bca7f2c800 : REST API 키 (매개변수 값)
-        // & : 그리고
-        // redirect_uri : 값을 보낼 url 링크 (매개변수 이름)
-        // = : 대입
-        // http://localhost:8080/kakao/callback : redirect_uri (kakao delvelopers에 미리 등록)(매개변수 값)
-        // & : 그리고
-        // response_type : response(결과값) 데이터 타입 (매개변수 이름)
-        // = : 대입
-        // code : 코드 타입 (매개변수 값)
-        return url.toString();
+            // https://kauth.kakao.com/oauth/authorize : Get 요청할 링크
+            // ? : 뒤에 매개변수를 넣어줌
+            // client_id : 클라이언트(고객)의 id (매개변수 이름)
+            // = : 대입
+            // f12393a3d014f5b41c1891bca7f2c800 : REST API 키 (매개변수 값)
+            // & : 그리고
+            // redirect_uri : 값을 보낼 url 링크 (매개변수 이름)
+            // = : 대입
+            // http://localhost:8080/kakao/callback : redirect_uri (kakao delvelopers에 미리 등록)(매개변수 값)
+            // & : 그리고
+            // response_type : response(결과값) 데이터 타입 (매개변수 이름)
+            // = : 대입
+            // code : 코드 타입 (매개변수 값)
+            return url.toString();
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
+        }
     }
 
     public String kakaoAutoConnect(){
-        StringBuffer url = new StringBuffer();
-        url.append(kakaoConnect());
-        url.append("&prompt=" + "login");
+        try {
+            StringBuffer url = new StringBuffer();
+            url.append(kakaoConnect());
+            url.append("&prompt=" + "login");
 
-        return url.toString();
+            return url.toString();
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
+        }
     }
 
     // kakaoConnect의 결과값(인가코드)가 아래의 매개변수 code로 들어감
@@ -151,8 +158,8 @@ public class KakaoService {
             session.removeAttribute("access_token");
             session.invalidate();
         }
-        catch (Exception400 e){
-            throw new Exception400("로그아웃 도중 오류 발생");
+        catch (Exception500 e){
+            throw new Exception500("로그아웃 도중 오류 발생");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -168,8 +175,8 @@ public class KakaoService {
 
             return url.toString();
         }
-        catch (Exception400 e){
-            throw new Exception400("로그아웃 도중 오류 발생");
+        catch (Exception500 e){
+            throw new Exception500("로그아웃 도중 오류 발생");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -184,8 +191,8 @@ public class KakaoService {
         try{
             kakaoPost(requestUrl,"Bearer " + access_token,null);
         }
-        catch (Exception400 e){
-            throw new Exception400("연결 해제 도중 오류 발생");
+        catch (Exception500 e){
+            throw new Exception500("연결 해제 도중 오류 발생");
         }
         catch (Exception e){
             e.printStackTrace();
@@ -204,11 +211,8 @@ public class KakaoService {
                 System.out.print(id.asText() + " ");
             }
         }
-        catch (Exception400 e){
-            throw new Exception400("로그아웃 도중 오류 발생");
-        }
         catch (Exception e){
-            e.printStackTrace();
+            throw new Exception500(e.getMessage());
         }
     }
 
