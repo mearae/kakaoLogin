@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -16,6 +17,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +77,8 @@ public class UserService {
             String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
             String refreshToken = JwtTokenProvider.createRefresh(customUserDetails.getUser());
 
-            User user = userRepository.findByEmail(customUserDetails.getUsername()).get();
+            // 혹시 모르는 경우의 수!!!
+            User user = customUserDetails.getUser();
             user.setAccess_token(access_token);
             user.setRefresh_token(refreshToken);
             userRepository.save(user);
@@ -98,17 +101,41 @@ public class UserService {
                     "\"platform\": \"" + joinDto.getPlatform() + "\"}";
 
             final HttpResponse response = userPost(oauthUrl, null, requestBody);
+            final String infoUrl2 = "http://localhost:8080/user_infooo";
+            System.out.println("get");
+            userGet(infoUrl2, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(), null);
 
-            final String infoUrl = "http://localhost:8080/user_info";
+            userGet(infoUrl2, null, null);
 
-            userPost(infoUrl, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(), null);
+            //final String infoUrl = "http://localhost:8080/user_info";
+            //System.out.println("post");
+            //userPost(infoUrl, response.getFirstHeader(JwtTokenProvider.HEADER).getValue(), null);
+
 
         } catch (Exception e){
             throw new Exception500(e.getMessage());
         }
     }
 
+    public void checkEmail(String email){
+        Optional<User> users = userRepository.findByEmail(email);
+        if (users.isPresent()){
+            throw new Exception400("이미 존재하는 이메일입니다. : " + email);
+        }
+    }
+
+    public User getUserInfo(int id){
+        try {
+            return userRepository.findById(id).orElseThrow(
+                    () -> new Exception401("인증되지 않았습니다.")
+            );
+        }catch (Exception e){
+            throw new Exception500("현재 로그인된 user의 정보 없음");
+        }
+    }
+
     public String logout(){
+//
 //        if (session.getAttribute("platform").equals("kakao")){
 //            return "http://localhost:8080/kakao/logout";
 //        } else {
@@ -130,13 +157,6 @@ public class UserService {
         }
     }
 
-    public void checkEmail(String email){
-        Optional<User> users = userRepository.findByEmail(email);
-        if (users.isPresent()){
-            throw new Exception400("이미 존재하는 이메일입니다. : " + email);
-        }
-    }
-
     public JsonNode isAccessed(HttpSession session) {
         return (JsonNode) session.getAttribute("access_token");
     }
@@ -147,7 +167,6 @@ public class UserService {
 
             // 위에서 설정한 매개변수와 값 리스트로 post 요청 객체 완성
             HttpPost post = new HttpPost(requestUrl);
-
 
             if (authorization != null)
                 post.addHeader("Authorization", authorization);
@@ -160,5 +179,29 @@ public class UserService {
         }catch (Exception e){
             throw new Exception500(e.getMessage());
         }
+    }
+
+    public HttpResponse userGet(String requestUrl, String authorization, String content_type){
+        try {
+            final HttpClient client = HttpClientBuilder.create().build();
+            System.out.println("=====================================");
+
+            // 위에서 설정한 매개변수와 값 리스트로 get 요청 객체 완성
+            HttpGet get = new HttpGet(requestUrl);
+            if (authorization != null) {
+                System.out.println("=====================================");
+                get.addHeader("Authorization", authorization);
+            }
+            if (content_type != null) {
+                System.out.println("=====================================");
+                get.addHeader("Content-type", content_type);
+            }
+
+            // 클라이언트(나)가 링크로 get 요청 보냄 -> 그 응답 넣음
+            return client.execute(get);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
     }
 }

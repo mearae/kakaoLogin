@@ -5,6 +5,7 @@ import com.example.demo.core.security.JwtTokenProvider;
 import com.example.demo.core.utils.ApiUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -63,16 +64,29 @@ public class UserController {
         return userService.isAccessed(req.getSession());
     }
 
-    @PostMapping("/user_info")
+//    @PostMapping("/user_info")
+//    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails){
+//        if (customUserDetails.getUser() == null){
+//            return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
+//        }
+//        User user = userService.getUserInfo(customUserDetails.getUser().getId());
+//        user.output();
+//        return ResponseEntity.ok(ApiUtils.success(user));
+//    }
+
+    @GetMapping("/user_infooo")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails){
-        User user = customUserDetails.getUser();
-        if (user == null){
-            System.out.println("asdfasfd");
+        System.out.println("0000000000000000000000000");
+        if (customUserDetails == null){
+            System.out.println("333333333333333333333333");
         }
-        else {
-            System.out.println(user.getId());
-            System.out.println(user.getRoles());
+        if (customUserDetails.getUser() == null){
+            System.out.println("11111111111111111111111111");
+            return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
         }
-        return ResponseEntity.ok(ApiUtils.success(null));
+        System.out.println("222222222222222222222222222222");
+        User user = userService.getUserInfo(customUserDetails.getUser().getId());
+        user.output();
+        return ResponseEntity.ok(ApiUtils.success(user));
     }
 }
