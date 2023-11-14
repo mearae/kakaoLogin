@@ -22,9 +22,7 @@ public class GeneralValidationHandler {
     @Before("postMapping()") // ** Pointcut 이 적용된 메소드가 실행되기 전에 호출
     public void validationAdvice(JoinPoint jp) {
 
-
         Object[] args = jp.getArgs();
-
 
         for (Object arg : args) {
 
