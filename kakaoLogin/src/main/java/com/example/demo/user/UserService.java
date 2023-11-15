@@ -166,8 +166,8 @@ public class UserService {
             final String infoUrl = "http://localhost:8080/user/user_info";
             ResponseEntity<?> response = testPost(infoUrl, access_token, null);
 
-            System.out.println(response.getBody());
-            System.out.println(jsonResponse(response.getBody()).asText());
+            System.out.println("1번 : " + response.getBody());
+            //System.out.println(jsonResponse(response).asText());
 //            user.setAccess_token(null);
 //            user.setRefresh_token(null);
 //            userRepository.save(user);
@@ -213,7 +213,7 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<?> testPost(String requestUrl, String authorization, UserRequest.JoinDto joinDto){
+    public <T> ResponseEntity<ApiUtils.ApiResult<T>> testPost(String requestUrl, String authorization, UserRequest.JoinDto joinDto, Class<T> responseType){
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -221,7 +221,7 @@ public class UserService {
             headers.set("Authorization", authorization);
         HttpEntity<UserRequest.JoinDto> requestEntity = new HttpEntity<>(joinDto, headers);
 
-        return restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, Object.class);
+        return restTemplate.postForEntity(requestUrl, requestEntity, (Class<ApiUtils.ApiResult<T>>) responseType);
     }
 
     public HttpResponse userGet(String requestUrl, String authorization, String content_type){
@@ -243,15 +243,14 @@ public class UserService {
     }
 
     //// 바꿀 곳 !!!!!!!!!!!!!!!!!!!!!!
-    public <T> JsonNode jsonResponse(T response) {
+    public JsonNode jsonResponse(HttpResponse response) {
         try {
             JsonNode returnNode = null;
             ObjectMapper mapper = new ObjectMapper();
-            returnNode = mapper.valueToTree(response);
+            returnNode = mapper.readTree(response.getEntity().getContent());
 
             return returnNode;
         } catch (Exception e){
-            System.out.println("오류오류오류오류오류오류오류오류오류오류오류오류오류오류");
             e.printStackTrace();
         }
         return null;
