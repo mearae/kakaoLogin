@@ -42,49 +42,34 @@ public class UserController {
     }
 
     @PostMapping("/user/login")
-    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
-        userService.login(joinDto);
+    public ResponseEntity<?> login(@RequestBody @Valid UserRequest.JoinDto joinDto, HttpServletRequest req, Error error){
+        userService.login(joinDto, req.getSession());
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
     @GetMapping("/user/logout")
     public String logout(HttpServletRequest req, Error error){
-        return userService.logout();
+        return userService.logout(req.getSession());
     }
 
-    @GetMapping("/users")
+    @GetMapping("/user/users")
     public ResponseEntity<?> printUsers(){
         userService.findAll();
 
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @GetMapping("/accessed")
+    @GetMapping("/user/accessed")
     public JsonNode isAccessed(HttpServletRequest req){
-        return userService.isAccessed(req.getSession());
+        JsonNode ll = userService.isAccessed(req.getSession());
+        return ll;
     }
 
-//    @PostMapping("/user_info")
-//    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails){
-//        if (customUserDetails.getUser() == null){
-//            return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
-//        }
-//        User user = userService.getUserInfo(customUserDetails.getUser().getId());
-//        user.output();
-//        return ResponseEntity.ok(ApiUtils.success(user));
-//    }
-
-    @GetMapping("/user_infooo")
+    @PostMapping("/user/user_info")
     public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails){
-        System.out.println("0000000000000000000000000");
-        if (customUserDetails == null){
-            System.out.println("333333333333333333333333");
-        }
         if (customUserDetails.getUser() == null){
-            System.out.println("11111111111111111111111111");
             return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
         }
-        System.out.println("222222222222222222222222222222");
         User user = userService.getUserInfo(customUserDetails.getUser().getId());
         user.output();
         return ResponseEntity.ok(ApiUtils.success(user));
