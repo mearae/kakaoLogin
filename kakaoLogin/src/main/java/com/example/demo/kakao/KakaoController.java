@@ -1,9 +1,7 @@
 package com.example.demo.kakao;
 
-import com.example.demo.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,13 +41,6 @@ public class KakaoController {
 
         // 다시 로그인 화면으로 돌아옴
         return "redirect:" + link;
-    }
-
-    @GetMapping("/kakao/join")
-    public ResponseEntity<?> kakaoJoin(HttpServletRequest req){
-        kakaoService.kakaoJoin(req.getSession());
-
-        return ResponseEntity.ok(ApiUtils.success(null));
     }
 
     @GetMapping("/kakao/logout")

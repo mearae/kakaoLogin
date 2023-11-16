@@ -3,7 +3,6 @@ package com.example.demo.user;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -47,8 +46,8 @@ public class UserRequest {
                     .name(name)
                     .phoneNumber(phoneNumber)
                     .roles(Collections.singletonList("ROLE_USER"))
-                    .access_token(access_token)
-                    .refresh_token(refresh_token)
+                    .access_token(null)
+                    .refresh_token(null)
                     .platform(platform)
                     .build();
         }
