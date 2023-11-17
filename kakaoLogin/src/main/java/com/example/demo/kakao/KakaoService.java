@@ -33,8 +33,8 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private final String restApi = "f12393a3d014f5b41c1891bca7f2c800";
-    private final String adminKey = "c1c3d919965c4c45df1da058b54a53f4";
+    private final String restApi = "restApi";
+    private final String adminKey = "adminKey";
 
     public String kakaoConnect(){
         try {
