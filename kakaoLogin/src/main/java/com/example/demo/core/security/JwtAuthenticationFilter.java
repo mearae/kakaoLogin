@@ -69,8 +69,8 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
             // ** Spring Security / 인증 정보를 관리하는데 사용
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    customUserDetails, 
-                    customUserDetails.getPassword(), 
+                    customUserDetails,
+                    customUserDetails.getPassword(),
                     customUserDetails.getAuthorities()
             );
 

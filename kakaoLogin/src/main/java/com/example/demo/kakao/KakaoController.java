@@ -51,8 +51,8 @@ public class KakaoController {
     }
 
     @GetMapping("/kakao/fulllogout")
-    public String kakaoFullLogout(){
-        String link = kakaoService.kakaoFullLogout();
+    public String kakaoFullLogout(HttpServletRequest req){
+        String link = kakaoService.kakaoFullLogout(req.getSession());
 
         return "redirect:" + link;
     }

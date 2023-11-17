@@ -9,20 +9,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Transactional(readOnly = true) // 데이터 안정성을 위해 넣음
@@ -32,8 +33,8 @@ public class KakaoService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private final String restApi = "내 RestApi";
-    private final String adminKey = "내 AdminKey";
+    private final String restApi = "f12393a3d014f5b41c1891bca7f2c800";
+    private final String adminKey = "c1c3d919965c4c45df1da058b54a53f4";
 
     public String kakaoConnect(){
         try {
@@ -82,7 +83,7 @@ public class KakaoService {
             JsonNode token = getKakaoAccessToken(code);
             String access_token = token.get("access_token").asText();
             // Bearer 넣어야 할지도?
-            session.setAttribute("access_token",access_token);
+            session.setAttribute("access_token", access_token);
             String refresh_token = token.get("refresh_token").asText();
             session.setAttribute("platform", "kakao");
 
@@ -111,7 +112,6 @@ public class KakaoService {
         return users.isPresent();
     }
 
-    @Transactional
     public void kakaoJoin(JsonNode userInfo, String access_token) {
         UserRequest.JoinDto joinDto = new UserRequest.JoinDto();
         // 지금은 권한이 제한되어 있어 비밀번호는 카카오톡 토큰으로, 전화번호는 임시로 설정
@@ -135,25 +135,25 @@ public class KakaoService {
     public JsonNode getKakaoAccessToken(String code) {
         // 요청 보낼 링크(토큰 얻기)
         final String requestUrl = "https://kauth.kakao.com/oauth/token";
-
         // 매개변수와 값의 리스트
-        final List<NameValuePair> postParams = new ArrayList<>();
-        // 매개변수와 값 추가
-        postParams.add(new BasicNameValuePair("grant_type", "authorization_code")); // 인증 타입 (고정값임)
-        postParams.add(new BasicNameValuePair("client_id", restApi)); // REST API KEY
-        postParams.add(new BasicNameValuePair("redirect_uri", "http://localhost:8080/kakao/callback")); // 리다이렉트 URI
-        postParams.add(new BasicNameValuePair("code", code)); // 인가 코드
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        parameters.add("grant_type", "authorization_code"); // 인증 타입 (고정값임)
+        parameters.add("client_id", restApi); // REST API KEY
+        parameters.add("redirect_uri", "http://localhost:8080/kakao/callback"); // 리다이렉트 URI
+        parameters.add("code", code); // 인가 코드
 
-        final HttpResponse response = kakaoPost(requestUrl,null,postParams);
+        final ResponseEntity<JsonNode> response = kakaoPost(requestUrl, null, parameters);
 
-        return jsonResponse(response);
+        return response.getBody();
     }
 
-    public JsonNode getKakaoUserInfo(String accessToken) {
+    public JsonNode getKakaoUserInfo(String access_token) {
         final String requestUrl = "https://kapi.kakao.com/v2/user/me";
-        final HttpResponse response = kakaoPost(requestUrl,"Bearer " + accessToken,null);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + access_token);
+        final ResponseEntity<JsonNode> response = kakaoPost(requestUrl, headers, null);
 
-        return jsonResponse(response);
+        return response.getBody();
     }
 
     @Transactional
@@ -166,9 +166,9 @@ public class KakaoService {
             User user = userRepository.findByEmail(email).orElseThrow(
                     () -> new Exception401("로그인된 사용자를 찾을 수 없습니다.")
             );
-            System.out.println(user.getAccess_token());
-            System.out.println(user.getRefresh_token());
-            kakaoPost(requestUrl,"Bearer " + access_token,null);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + access_token);
+            kakaoPost(requestUrl, headers, null);
             user.setAccess_token(null);
             user.setRefresh_token(null);
             userRepository.save(user);
@@ -182,12 +182,13 @@ public class KakaoService {
         }
     }
 
-    public String kakaoFullLogout() {
+    @Transactional
+    public String kakaoFullLogout(HttpSession session) {
         try{
             StringBuffer url = new StringBuffer();
             url.append("https://kauth.kakao.com/oauth/logout?");
             url.append("client_id=").append(restApi);
-            url.append("&logout_redirect_uri=" + "http://localhost:8080/kakao/oauth");
+            url.append("&logout_redirect_uri=" + "http://localhost:8080");
 
             return url.toString();
         }
@@ -205,7 +206,9 @@ public class KakaoService {
         String access_token = (String) session.getAttribute("access_token");
 
         try{
-            kakaoPost(requestUrl,"Bearer " + access_token,null);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + access_token);
+            kakaoPost(requestUrl, headers, null);
         }
         catch (Exception500 e){
             throw new Exception500("연결 해제 도중 오류 발생");
@@ -219,8 +222,12 @@ public class KakaoService {
         final String requestUrl = "https://kapi.kakao.com/v1/user/ids";
 
         try{
-            final HttpResponse response = kakaoGet(requestUrl,"KakaoAK " + adminKey,"application/x-www-form-urlencoded;charset=utf-8");
-            JsonNode returnNode = jsonResponse(response);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + adminKey);
+            headers.set("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+            final ResponseEntity<JsonNode> response = userGet(requestUrl, headers, null);
+            if (response.getBody() == null) throw new Exception();
+            JsonNode returnNode = response.getBody();
 
             System.out.print("id : ");
             for (JsonNode id : returnNode.get("elements")){
@@ -232,55 +239,36 @@ public class KakaoService {
         }
     }
 
-    public JsonNode jsonResponse(HttpResponse response) {
-        try {
-            JsonNode returnNode = null;
-            ObjectMapper mapper = new ObjectMapper();
-            returnNode = mapper.readTree(response.getEntity().getContent());
+    public <T> ResponseEntity<JsonNode> userGet(String requestUrl, HttpHeaders headers, T body){
+        try{
+            RestTemplate restTemplate = new RestTemplate();
 
-            return returnNode;
+            HttpEntity<T> requestEntity;
+            if (headers != null)
+                requestEntity = new HttpEntity<>(body, headers);
+            else
+                requestEntity = new HttpEntity<>(body);
+
+            return restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, JsonNode.class);
         } catch (Exception e){
-            e.printStackTrace();
+            throw new Exception500(e.getMessage());
         }
-        return null;
     }
 
-    public HttpResponse kakaoPost(String requestUrl, String authorization, List<NameValuePair> body){
-        try {
-            final HttpClient client = HttpClientBuilder.create().build();
+    public <T> ResponseEntity<JsonNode> kakaoPost(String requestUrl, HttpHeaders headers, T body){
+        try{
+            RestTemplate restTemplate = new RestTemplate();
 
-            // 위에서 설정한 매개변수와 값 리스트로 post 요청 객체 완성
-            HttpPost post = new HttpPost(requestUrl);
-            if (authorization != null)
-                post.addHeader("Authorization", authorization);
-            if (body != null && !body.isEmpty())
-                post.setEntity(new UrlEncodedFormEntity(body));
+            HttpEntity<T> requestEntity;
+            if (headers != null)
+                requestEntity = new HttpEntity<>(body, headers);
+            else
+                requestEntity = new HttpEntity<>(body);
 
-            // 클라이언트(나)가 링크로 post 요청 보냄 -> 그 응답 넣음
-            return client.execute(post);
-        }catch (Exception e){
-            e.printStackTrace();
+            return restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, JsonNode.class);
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
         }
-        return null;
-    }
-
-    public HttpResponse kakaoGet(String requestUrl, String authorization, String content_type){
-        try {
-            final HttpClient client = HttpClientBuilder.create().build();
-
-            // 위에서 설정한 매개변수와 값 리스트로 get 요청 객체 완성
-            HttpGet get = new HttpGet(requestUrl);
-            if (authorization != null)
-                get.addHeader("Authorization", authorization);
-            if (content_type != null)
-                get.addHeader("Content-type", content_type);
-
-            // 클라이언트(나)가 링크로 get 요청 보냄 -> 그 응답 넣음
-            return client.execute(get);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public void endServer(){
@@ -288,11 +276,17 @@ public class KakaoService {
     }
 
     public void getTokenInfo(JsonNode access_token) {
-        final String requestUrl = "https://kapi.kakao.com/v1/user/access_token_info";
+        try {
+            final String requestUrl = "https://kapi.kakao.com/v1/user/access_token_info";
 
-        final HttpResponse response = kakaoGet(requestUrl,"Bearer " + access_token,null);
-
-        JsonNode token_info =  jsonResponse(response);
-        System.out.println(token_info.toPrettyString());
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + access_token);
+            final ResponseEntity<JsonNode> response = userGet(requestUrl, headers, null);
+            if (response.getBody() == null) throw new Exception();
+            JsonNode token_info = response.getBody();
+            System.out.println(token_info.toPrettyString());
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
+        }
     }
 }
