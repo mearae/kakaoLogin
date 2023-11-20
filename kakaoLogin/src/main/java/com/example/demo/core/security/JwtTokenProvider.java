@@ -36,17 +36,9 @@ public class JwtTokenProvider {
     }
 
     public static String createRefresh(User user){
-        StringArrayConverter stringArrayConverter = new StringArrayConverter();
-
-        String roles = stringArrayConverter.convertToDatabaseColumn(
-                user.getRoles()
-        );
-
         String jwt = JWT.create()
                 .withSubject(user.getEmail())// ** 토큰의 대상정보 셋팅
                 .withExpiresAt(new Date(System.currentTimeMillis() + REFRESH_EXP))
-                .withClaim("id", user.getId())
-                .withClaim("roles", roles)
                 .sign(Algorithm.HMAC512(SECRET));// ** JWT 생성 알고리즘 설정
         return jwt;
     }

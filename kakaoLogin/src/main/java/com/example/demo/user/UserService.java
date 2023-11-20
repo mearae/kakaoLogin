@@ -1,27 +1,18 @@
 package com.example.demo.user;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
-import com.example.demo.core.utils.ApiUtils;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -86,7 +77,6 @@ public class UserService {
             String access_token = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
             String refreshToken = JwtTokenProvider.createRefresh(customUserDetails.getUser());
 
-            // 혹시 모르는 경우의 수!!!
             User user = customUserDetails.getUser();
             user.setAccess_token(access_token);
             user.setRefresh_token(refreshToken);
@@ -98,44 +88,21 @@ public class UserService {
         }
     }
 
-//    public void login(UserRequest.JoinDto joinDto, HttpSession session) {
-//        try {
-//            final String oauthUrl = "http://localhost:8080/user/oauth";
-//            String requestBody = "{\"email\": \"" + joinDto.getEmail() + "\", " +
-//                    "\"password\": \"" + joinDto.getPassword() + "\", " +
-//                    "\"name\": \"" + joinDto.getName() + "\", " +
-//                    "\"phoneNumber\": \"" + joinDto.getPhoneNumber() + "\", " +
-//                    "\"access_token\": \"" + joinDto.getAccess_token() + "\", " +
-//                    "\"refresh_token\": \"" + joinDto.getRefresh_token() + "\", " +
-//                    "\"platform\": \"" + joinDto.getPlatform() + "\"}";
-//
-//            final HttpResponse response = userPost(oauthUrl, null, requestBody);
-//
-//            final String infoUrl = "http://localhost:8080/user/user_info";
-//            String access_token = response.getFirstHeader(JwtTokenProvider.HEADER).getValue();
-//            session.setAttribute("access_token", access_token);
-//            session.setAttribute("platform", "user");
-//            userPost(infoUrl, access_token, null);
-//        } catch (Exception e){
-//            throw new Exception500(e.getMessage());
-//        }
-//    }
-
     public void login(UserRequest.JoinDto joinDto, HttpSession session) {
         try {
             final String oauthUrl = "http://localhost:8080/user/oauth";
+            ResponseEntity<JsonNode> response = userPost(oauthUrl,null, joinDto);
 
-            final ResponseEntity<?> response = testPost(oauthUrl, null, joinDto);
-
-            System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaa");
             final String infoUrl = "http://localhost:8080/user/user_info";
             String access_token = response.getHeaders().getFirst(JwtTokenProvider.HEADER);
-            System.out.println(access_token);
             session.setAttribute("access_token", access_token);
             session.setAttribute("platform", "user");
-            testPost(infoUrl, access_token, null);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", access_token);
+            userPost(infoUrl, headers, null);
         } catch (Exception e){
-            System.out.println(e.getMessage());
             throw new Exception500(e.getMessage());
         }
     }
@@ -158,26 +125,61 @@ public class UserService {
     }
 
     @Transactional
-    public String logout(HttpSession session){
+    public String logout(HttpSession session) {
         String access_token = (String) session.getAttribute("access_token");
-        if (session.getAttribute("platform").equals("kakao")){
-            return "http://localhost:8080/kakao/logout";
-        } else {
-            final String infoUrl = "http://localhost:8080/user/user_info";
-            ResponseEntity<?> response = testPost(infoUrl, access_token, null);
+        try {
+            if (session.getAttribute("platform").equals("kakao")) {
+                return "http://localhost:8080/kakao/logout";
+            } else {
+                final String infoUrl = "http://localhost:8080/user/user_info";
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", access_token);
+                final ResponseEntity<JsonNode> response = userPost(infoUrl, headers, null);
+                if (response.getBody() == null) throw new Exception();
+                JsonNode responseJson = response.getBody().get("response");
+                User user = userRepository.findById(responseJson.get("id").asInt()).orElseThrow();
 
-            System.out.println("1번 : " + response.getBody());
-            //System.out.println(jsonResponse(response).asText());
-//            user.setAccess_token(null);
-//            user.setRefresh_token(null);
-//            userRepository.save(user);
-            session.removeAttribute("access_token");
-            session.removeAttribute("platform");
-            session.invalidate();
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            JwtTokenProvider.invalidateToken(authentication);
+                killToken(user);
+                session.invalidate();
+            }
+            return "index.html";
+        } catch (Exception e){
+            throw new Exception500(e.getMessage());
         }
-        return "index.html";
+    }
+
+    public void killToken(User user){
+        user.setAccess_token(null);
+        user.setRefresh_token(null);
+        userRepository.save(user);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        JwtTokenProvider.invalidateToken(authentication);
+    }
+
+    @Transactional
+    public void refresh(String refreshToken, HttpSession session) {
+        DecodedJWT decodedJWT = JwtTokenProvider.verify(refreshToken);
+
+        // === Access Token 재발급 === //
+        String username = decodedJWT.getSubject();
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new Exception500("사용자를 찾을 수 없습니다."));
+        if (!user.getRefresh_token().equals(refreshToken)) throw new Exception401("유효하지 않은 Refresh Token 입니다.");
+        String new_access_Token = JwtTokenProvider.create(user);
+        user.setAccess_token(new_access_Token);
+        session.setAttribute("access_token", new_access_Token);
+
+        // === 현재시간과 Refresh Token 만료날짜를 통해 남은 만료기간 계산 === //
+        // === Refresh Token 만료시간 계산해 1개월 미만일 시 refresh token도 발급 === //
+        long endTime = decodedJWT.getClaim("exp").asLong() * 1000;
+        long diffMin = (endTime - System.currentTimeMillis()) / 1000 / 60;
+        if (diffMin < 5) {
+            String new_refresh_token = JwtTokenProvider.createRefresh(user);
+            user.setRefresh_token(new_refresh_token);
+        }
+
+        userRepository.save(user);
     }
 
     public void findAll() {
@@ -189,70 +191,39 @@ public class UserService {
         }
     }
 
-    public JsonNode isAccessed(HttpSession session) {
-        return (JsonNode) session.getAttribute("access_token");
+    public String isAccessed(HttpSession session) {
+        return (String) session.getAttribute("access_token");
     }
 
-    public HttpResponse userPost(String requestUrl, String authorization, String body){
-        try {
-            final HttpClient client = HttpClientBuilder.create().build();
+    public <T> ResponseEntity<JsonNode> userPost(String requestUrl, HttpHeaders headers, T body){
+        try{
+            RestTemplate restTemplate = new RestTemplate();
 
-            // 위에서 설정한 매개변수와 값 리스트로 post 요청 객체 완성
-            HttpPost post = new HttpPost(requestUrl);
+            HttpEntity<T> requestEntity;
+            if (headers != null)
+                requestEntity = new HttpEntity<>(body, headers);
+            else
+                requestEntity = new HttpEntity<>(body);
 
-            if (authorization != null)
-                post.addHeader("Authorization", authorization);
-            if (body != null && !body.isEmpty()) {
-                StringEntity entity = new StringEntity(body, ContentType.APPLICATION_JSON);
-                post.setEntity(entity);
-            }
-            // 클라이언트(나)가 링크로 post 요청 보냄 -> 그 응답 넣음
-            return client.execute(post);
-        }catch (Exception e){
+            return restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, JsonNode.class);
+        } catch (Exception e){
             throw new Exception500(e.getMessage());
         }
     }
 
-    public <T> ResponseEntity<ApiUtils.ApiResult<T>> testPost(String requestUrl, String authorization, UserRequest.JoinDto joinDto, Class<T> responseType){
-        RestTemplate restTemplate = new RestTemplate();
+    public <T> ResponseEntity<JsonNode> userGet(String requestUrl, HttpHeaders headers, T body){
+        try{
+            RestTemplate restTemplate = new RestTemplate();
 
-        HttpHeaders headers = new HttpHeaders();
-        if (authorization != null)
-            headers.set("Authorization", authorization);
-        HttpEntity<UserRequest.JoinDto> requestEntity = new HttpEntity<>(joinDto, headers);
+            HttpEntity<T> requestEntity;
+            if (headers != null)
+                requestEntity = new HttpEntity<>(body, headers);
+            else
+                requestEntity = new HttpEntity<>(body);
 
-        return restTemplate.postForEntity(requestUrl, requestEntity, (Class<ApiUtils.ApiResult<T>>) responseType);
-    }
-
-    public HttpResponse userGet(String requestUrl, String authorization, String content_type){
-        try {
-            final HttpClient client = HttpClientBuilder.create().build();
-
-            // 위에서 설정한 매개변수와 값 리스트로 get 요청 객체 완성
-            HttpGet get = new HttpGet(requestUrl);
-            if (authorization != null)
-                get.addHeader("Authorization", authorization);
-            if (content_type != null)
-                get.addHeader("Content-type", content_type);
-            // 클라이언트(나)가 링크로 get 요청 보냄 -> 그 응답 넣음
-            return client.execute(get);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    //// 바꿀 곳 !!!!!!!!!!!!!!!!!!!!!!
-    public JsonNode jsonResponse(HttpResponse response) {
-        try {
-            JsonNode returnNode = null;
-            ObjectMapper mapper = new ObjectMapper();
-            returnNode = mapper.readTree(response.getEntity().getContent());
-
-            return returnNode;
+            return restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, JsonNode.class);
         } catch (Exception e){
-            e.printStackTrace();
+            throw new Exception500(e.getMessage());
         }
-        return null;
     }
 }
