@@ -1,5 +1,6 @@
-package com.example.demo.kakao;
+package com.example.demo.controller;
 
+import com.example.demo.service.KakaoService;
 import lombok.RequiredArgsConstructor;
 import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Controller;

@@ -1,8 +1,11 @@
-package com.example.demo.user;
+package com.example.demo.controller;
 
+import com.example.demo.entity.User;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
 import com.example.demo.core.utils.ApiUtils;
+import com.example.demo.DTO.UserRequest;
+import com.example.demo.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,10 +40,8 @@ public class UserController {
     public ResponseEntity<Object> connect(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
         String jwt = userService.connect(joinDto);
 
-        User user = new User();
-
         return ResponseEntity.ok().header(JwtTokenProvider.HEADER, jwt)
-                .body(ApiUtils.success(user));
+                .body(ApiUtils.success(null));
     }
 
     @PostMapping("/login")

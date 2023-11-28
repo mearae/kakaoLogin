@@ -1,8 +1,8 @@
 package com.example.demo.core.security;
 
 import com.example.demo.core.error.exception.Exception401;
-import com.example.demo.user.User;
-import com.example.demo.user.UserRepository;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

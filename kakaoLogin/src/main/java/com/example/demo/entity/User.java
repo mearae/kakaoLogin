@@ -1,5 +1,6 @@
-package com.example.demo.user;
+package com.example.demo.entity;
 
+import com.example.demo.core.utils.StringArrayConverter;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

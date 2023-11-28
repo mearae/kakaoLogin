@@ -1,4 +1,4 @@
-package com.example.demo.user;
+package com.example.demo.core.utils;
 
 import javax.persistence.AttributeConverter;
 import java.util.Arrays;

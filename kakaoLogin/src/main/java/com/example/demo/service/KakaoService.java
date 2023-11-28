@@ -1,10 +1,10 @@
-package com.example.demo.kakao;
+package com.example.demo.service;
 
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
-import com.example.demo.user.User;
-import com.example.demo.user.UserRepository;
-import com.example.demo.user.UserRequest;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
+import com.example.demo.DTO.UserRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
