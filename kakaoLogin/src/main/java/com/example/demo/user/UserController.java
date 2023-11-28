@@ -15,25 +15,26 @@ import javax.validation.Valid;
 
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/user/join")
+    @PostMapping("/join")
     public ResponseEntity<Object> join(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
         userService.join(joinDto);
 
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @PostMapping("/user/check")
+    @PostMapping("/check")
     public ResponseEntity<Object> check(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
         userService.checkEmail(joinDto.getEmail());
 
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @PostMapping("/user/oauth")
+    @PostMapping("/oauth")
     public ResponseEntity<Object> connect(@RequestBody @Valid UserRequest.JoinDto joinDto, Error error){
         String jwt = userService.connect(joinDto);
 
@@ -43,31 +44,31 @@ public class UserController {
                 .body(ApiUtils.success(user));
     }
 
-    @PostMapping("/user/login")
+    @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid UserRequest.JoinDto joinDto, HttpServletRequest req, Error error){
         userService.login(joinDto, req.getSession());
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @GetMapping("/user/logout")
+    @GetMapping("/logout")
     public String logout(HttpServletRequest req, Error error){
         return userService.logout(req.getSession());
     }
 
-    @GetMapping("/user/users")
+    @GetMapping("/users")
     public ResponseEntity<Object> printUsers(){
         userService.findAll();
 
         return ResponseEntity.ok(ApiUtils.success(null));
     }
 
-    @GetMapping("/user/accessed")
+    @GetMapping("/accessed")
     public String isAccessed(HttpServletRequest req){
         String ll = userService.isAccessed(req.getSession());
         return ll;
     }
 
-    @PostMapping("/user/user_info")
+    @PostMapping("/user_info")
     public ResponseEntity<ApiUtils.ApiResult<User>> getCurrentUser(@AuthenticationPrincipal CustomUserDetails customUserDetails){
         if (customUserDetails.getUser() == null){
             return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
@@ -77,7 +78,7 @@ public class UserController {
         return ResponseEntity.ok(ApiUtils.success(user));
     }
 
-    @PostMapping("user/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<Object> tokenRefresh(@AuthenticationPrincipal CustomUserDetails customUserDetails, HttpServletRequest req){
         if (customUserDetails.getUser() == null){
             return ResponseEntity.ok(ApiUtils.error("현재 로그인된 user가 없습니다.", HttpStatus.UNAUTHORIZED));
