@@ -2,12 +2,12 @@ package com.example.demo.service;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.demo.DTO.UserRequest;
-import com.example.demo.entity.User;
 import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
+import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -91,16 +91,11 @@ public class UserService {
         try {
             final String oauthUrl = "http://localhost:8080/user/oauth";
             ResponseEntity<JsonNode> response = userPost(oauthUrl,null, joinDto);
-
-            final String infoUrl = "http://localhost:8080/user/user_info";
             String access_token = response.getHeaders().getFirst(JwtTokenProvider.HEADER);
             session.setAttribute("access_token", access_token);
             session.setAttribute("platform", "user");
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set("Authorization", access_token);
-            userPost(infoUrl, headers, null);
+            getUserInfo(access_token);
         } catch (Exception e){
             throw new Exception500(e.getMessage());
         }
@@ -113,7 +108,7 @@ public class UserService {
         }
     }
 
-    public User getUserInfo(int id){
+    public User getUserById(Long id){
         try {
             return userRepository.findById(id).orElseThrow(
                     () -> new Exception401("인증되지 않았습니다.")
@@ -128,21 +123,13 @@ public class UserService {
         String access_token = (String) session.getAttribute("access_token");
         try {
             if (session.getAttribute("platform").equals("kakao")) {
-                return "http://localhost:8080/kakao/logout";
+                return "/kakao/logout";
             } else {
-                final String infoUrl = "http://localhost:8080/user/user_info";
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Authorization", access_token);
-                final ResponseEntity<JsonNode> response = userPost(infoUrl, headers, null);
-                if (response.getBody() == null) throw new Exception();
-                JsonNode responseJson = response.getBody().get("response");
-                User user = userRepository.findById(responseJson.get("id").asInt()).orElseThrow();
-
+                User user = getUserInfo(access_token);
                 killToken(user);
                 session.invalidate();
             }
-            return "index.html";
+            return "/";
         } catch (Exception e){
             throw new Exception500(e.getMessage());
         }
@@ -170,10 +157,10 @@ public class UserService {
         session.setAttribute("access_token", new_access_Token);
 
         // === 현재시간과 Refresh Token 만료날짜를 통해 남은 만료기간 계산 === //
-        // === Refresh Token 만료시간 계산해 1개월 미만일 시 refresh token도 발급 === //
+        // === Refresh Token 만료시간 계산해 5일 미만일 시 refresh token도 발급 === //
         long endTime = decodedJWT.getClaim("exp").asLong() * 1000;
-        long diffMin = (endTime - System.currentTimeMillis()) / 1000 / 60;
-        if (diffMin < 5) {
+        long diffDay = (endTime - System.currentTimeMillis()) / 1000 / 60 / 60 / 24;
+        if (diffDay < 5) {
             String new_refresh_token = JwtTokenProvider.createRefresh(user);
             user.setRefresh_token(new_refresh_token);
         }
@@ -199,10 +186,11 @@ public class UserService {
             RestTemplate restTemplate = new RestTemplate();
 
             HttpEntity<T> requestEntity;
-            if (headers != null)
-                requestEntity = new HttpEntity<>(body, headers);
-            else
-                requestEntity = new HttpEntity<>(body);
+//            if (headers != null)
+//                requestEntity = new HttpEntity<>(body, headers);
+//            else
+//                requestEntity = new HttpEntity<>(body);
+            requestEntity = new HttpEntity<>(body, headers);
 
             return restTemplate.exchange(requestUrl, HttpMethod.POST, requestEntity, JsonNode.class);
         } catch (Exception e){
@@ -224,5 +212,18 @@ public class UserService {
         } catch (Exception e){
             throw new Exception500(e.getMessage());
         }
+    }
+
+    public User getUserInfo(String access_token) {
+        final String infoUrl = "http://localhost:8080/user/user_info";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", access_token);
+        ResponseEntity<JsonNode> rr = userPost(infoUrl, headers, null);
+        // asdfasdf도 안 나옴
+        System.out.println("asdfasfd : "+rr);
+        JsonNode response = rr.getBody().get("response");
+
+        return userRepository.findById(response.get("id").asLong()).get();
     }
 }

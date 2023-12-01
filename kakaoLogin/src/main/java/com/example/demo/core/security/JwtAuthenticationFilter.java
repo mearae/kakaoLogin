@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             }
 
             // ** 사용자 정보 추출
-            int id = decodedJWT.getClaim("id").asInt();
+            Long id = decodedJWT.getClaim("id").asLong();
             String roles = decodedJWT.getClaim("roles").asString();
 
             // ** 권한 정보를 문자열 리스트로 변환
