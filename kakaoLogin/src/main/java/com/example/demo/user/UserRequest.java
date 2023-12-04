@@ -1,6 +1,6 @@
-package com.example.demo.DTO;
+package com.example.demo.user;
 
-import com.example.demo.entity.User;
+import com.example.demo.user.User;
 import lombok.Getter;
 import lombok.Setter;
 

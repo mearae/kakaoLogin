@@ -1,14 +1,11 @@
-package com.example.demo.service;
+package com.example.demo.user;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.demo.DTO.UserRequest;
 import com.example.demo.core.error.exception.Exception400;
 import com.example.demo.core.error.exception.Exception401;
 import com.example.demo.core.error.exception.Exception500;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
-import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;

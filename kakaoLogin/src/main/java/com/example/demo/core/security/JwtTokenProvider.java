@@ -5,8 +5,8 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.example.demo.core.utils.StringArrayConverter;
-import com.example.demo.entity.User;
+import com.example.demo.user.StringArrayConverter;
+import com.example.demo.user.User;
 import org.springframework.security.core.Authentication;
 
 import java.util.Date;

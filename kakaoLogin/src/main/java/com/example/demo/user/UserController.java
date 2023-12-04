@@ -1,11 +1,11 @@
-package com.example.demo.controller;
+package com.example.demo.user;
 
-import com.example.demo.DTO.UserRequest;
+import com.example.demo.user.UserRequest;
 import com.example.demo.core.security.CustomUserDetails;
 import com.example.demo.core.security.JwtTokenProvider;
 import com.example.demo.core.utils.ApiUtils;
-import com.example.demo.entity.User;
-import com.example.demo.service.UserService;
+import com.example.demo.user.User;
+import com.example.demo.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
